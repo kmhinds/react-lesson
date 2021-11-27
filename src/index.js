@@ -15,16 +15,38 @@ class Square extends React.Component {
         if (this.state.value !== null) {
             return
         }
-        if (this.props.player === 1) {
-            this.setState({value: 'X'})
-            this.props.setGameState({
-                player: 2
-            })
+        
+        if (this.props.gameState.player === 1) {
+            this.takeTurn(1)
         } else {
-            this.setState({value: 'O'})
-            this.props.setGameState({
-                player: 1
-            })
+            this.takeTurn(2)
+        }
+    }
+    
+    takeTurn = (player) => {
+        const newPositions = [...this.props.gameState.positions];
+        const symbol = player === 1 ? 'X':'O';
+        this.setState({value: symbol});
+        newPositions[this.props.value] = player;
+        const winner = this.getWinner(newPositions)
+        this.props.setGameState({
+            player: player === 1 ? 2:1,
+            positions: newPositions,
+            winner,
+        });
+    }
+
+
+    // 1, 1, 1,
+    // 2, 1, null,
+    // 1, null, 2
+    getWinner = (positions) => { // 1 or 2 or null  or 'tie'
+        if (positions[0] === positions[1] && positions[1] === positions[2]) {
+            return positions[0]
+        } else if (positions[3] === positions[4] && positions[4] === positions[5]) {
+            return positions[3]
+        } else if (positions[6] === positions[7] && positions[7] === positions[8]) {
+            return positions[6]
         }
     }
 
@@ -42,11 +64,11 @@ class Square extends React.Component {
   
   class Board extends React.Component {
     renderSquare(i) {
-      return <Square player={this.props.player} setGameState={this.props.setGameState} value={i} />;
+      return <Square gameState={this.props.gameState} setGameState={this.props.setGameState} value={i} />;
     }
   
     render() {
-      const status = `Player: ${this.props.player}`;
+      const status = `Player: ${this.props.gameState.player}`;
   
       return (
         <div>
@@ -77,14 +99,22 @@ class Square extends React.Component {
         this.state = {
             player: 1,
             turn: 1,
+            positions: new Array(9).fill(null),
+            winner: null
         }
     }
 
+
     render() {
+        console.log(this.state.positions)
       return (
         <div className="game">
           <div className="game-board">
-            <Board player={this.state.player} setGameState={this.setState.bind(this)} />
+            <Board gameState={this.state} setGameState={this.setState.bind(this)} />
+          </div>
+          <div>
+              Winner:
+              {this.state.winner}
           </div>
           <div className="game-info">
             <div>{/* status */}</div>
